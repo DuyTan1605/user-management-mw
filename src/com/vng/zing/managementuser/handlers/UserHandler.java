@@ -21,6 +21,12 @@ import com.vng.zing.userservice.thrift.UpdateUserParams;
 import com.vng.zing.userservice.thrift.UpdateUserResult;
 import com.vng.zing.userservice.thrift.User;
 import com.vng.zing.userservice.thrift.UserService;
+import com.vng.zing.utils.DateTimeUtils;
+import com.vng.zing.utils.HashPassword;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -47,18 +53,6 @@ public class UserHandler implements UserService.Iface {
 
     public ConnectionManager connectionManager = new ConnectionManager();
 
-    public static long formatDateTime(String dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateFormat = LocalDateTime.parse(dateTime, formatter);
-        return dateFormat.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant().toEpochMilli();
-    }
-
-    public static java.sql.Date convertUtilToSql(long msSeconds) {
-        java.util.Date uDate = new java.util.Date(msSeconds);
-        java.sql.Date sDate = new java.sql.Date(uDate.getTime());
-        return sDate;
-    }
-
     @Override
     public ListUserResult getUsers(ListUserParams params) throws TException {
         ListUserResult result = new ListUserResult();
@@ -79,13 +73,13 @@ public class UserHandler implements UserService.Iface {
 
                 if (rs.getString("birthday") != null) {
 
-                    birthday = formatDateTime(rs.getString("birthday"));
+                    birthday = DateTimeUtils.formatDateTime(rs.getString("birthday"));
                 }
                 if (rs.getString("createtime") != null) {
-                    createTime = formatDateTime(rs.getString("createtime"));
+                    createTime = DateTimeUtils.formatDateTime(rs.getString("createtime"));
                 }
                 if (rs.getString("updatetime") != null) {
-                    updateTime = formatDateTime(rs.getString("updatetime"));
+                    updateTime = DateTimeUtils.formatDateTime(rs.getString("updatetime"));
                 }
 
                 User user = new User(id, name, username, password, gender, birthday != 0 ? birthday : 0, createTime != 0 ? createTime : 0, updateTime != 0 ? updateTime : 0);
@@ -125,16 +119,16 @@ public class UserHandler implements UserService.Iface {
 
                 if (rs.getString("birthday") != null) {
 
-                    birthday = formatDateTime(rs.getString("birthday"));
+                    birthday = DateTimeUtils.formatDateTime(rs.getString("birthday"));
                 }
                 if (rs.getString("createtime") != null) {
-                    createTime = formatDateTime(rs.getString("createtime"));
+                    createTime = DateTimeUtils.formatDateTime(rs.getString("createtime"));
                 }
                 if (rs.getString("updatetime") != null) {
-                    updateTime = formatDateTime(rs.getString("updatetime"));
+                    updateTime = DateTimeUtils.formatDateTime(rs.getString("updatetime"));
                 }
 
-                user = new User(id, name, username, password, gender, birthday != 0 ? birthday : 0, createTime != 0 ? createTime : 0, updateTime != 0 ? updateTime : 0);
+                user = new User(id, name, username, password, gender, birthday, createTime, updateTime);
             }
             int code = user != null ? ZErrorDef.SUCCESS : ZErrorDef.BAD_REQUEST;
             result.setCode(code);
@@ -159,8 +153,8 @@ public class UserHandler implements UserService.Iface {
             psm.setString(1, params.user.name);
             psm.setString(2, params.user.username);
             psm.setInt(3, params.user.gender.getValue());
-            psm.setDate(4, convertUtilToSql(params.user.birthday));
-            psm.setString(5, params.user.password);
+            psm.setDate(4, DateTimeUtils.convertUtilToSql(params.user.birthday));
+            psm.setString(5, HashPassword.toHexString(HashPassword.getSHA(params.user.password)));
 
             int effectedRow = psm.executeUpdate();
             int code = effectedRow == 1 ? ZErrorDef.SUCCESS : ZErrorDef.FAIL;
@@ -169,6 +163,10 @@ public class UserHandler implements UserService.Iface {
             result.setMessage(message);
             connection.close();
         } catch (SQLException ex) {
+            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
+            result.setCode(ZErrorDef.FAIL);
+            result.setMessage("Error occur");
+        } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
             result.setCode(ZErrorDef.FAIL);
             result.setMessage("Error occur");
@@ -186,7 +184,7 @@ public class UserHandler implements UserService.Iface {
             psm.setString(1, params.user.name);
             psm.setString(2, params.user.username);
             psm.setInt(3, params.user.gender.getValue());
-            psm.setDate(4, convertUtilToSql(params.user.birthday));
+            psm.setDate(4, DateTimeUtils.convertUtilToSql(params.user.birthday));
             psm.setInt(5, params.user.id);
 
             int effectedRow = psm.executeUpdate();
