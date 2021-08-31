@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.vng.zing.utils;
+package com.vng.zing.managementuser.utils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

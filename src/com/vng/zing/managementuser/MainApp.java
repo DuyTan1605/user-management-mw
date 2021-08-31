@@ -2,10 +2,9 @@
  * Copyright (c) 2012-2016 by Zalo Group.
  * All Rights Reserved.
  */
-package com.vng.zing.application;
+package com.vng.zing.managementuser;
 
-import com.vng.zing.connection.ConnectionManager;
-import com.vng.zing.managementuser.servers.TServers;
+import com.vng.zing.managementuser.dao.ConnectionManager;
 import java.time.Instant;
 
 /**

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.vng.zing.connection;
+package com.vng.zing.managementuser.dao;
 
 /**
  *

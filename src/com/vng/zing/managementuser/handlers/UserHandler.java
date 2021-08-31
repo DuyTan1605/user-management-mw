@@ -7,7 +7,10 @@ package com.vng.zing.managementuser.handlers;
 
 import com.mysql.cj.result.LocalDateTimeValueFactory;
 import com.vng.zing.common.ZErrorDef;
-import com.vng.zing.connection.ConnectionManager;
+import com.vng.zing.logger.ZLogger;
+import com.vng.zing.managementuser.dao.ConnectionManager;
+import com.vng.zing.managementuser.services.UserListService;
+import com.vng.zing.managementuser.services.UserServices;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.CreateUserResult;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
@@ -21,8 +24,9 @@ import com.vng.zing.userservice.thrift.UpdateUserParams;
 import com.vng.zing.userservice.thrift.UpdateUserResult;
 import com.vng.zing.userservice.thrift.User;
 import com.vng.zing.userservice.thrift.UserService;
-import com.vng.zing.utils.DateTimeUtils;
-import com.vng.zing.utils.HashPassword;
+import com.vng.zing.managementuser.utils.DateTimeUtils;
+import com.vng.zing.managementuser.utils.PasswordHasher;
+import com.vng.zing.zcommon.thrift.ECode;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -40,10 +44,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.text.DateFormatter;
 import org.apache.thrift.TException;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -52,124 +55,66 @@ import org.apache.thrift.TException;
 public class UserHandler implements UserService.Iface {
 
     public ConnectionManager connectionManager = new ConnectionManager();
+    private static final Logger _Logger = ZLogger.getLogger(UserHandler.class);
 
     @Override
-    public ListUserResult getUsers(ListUserParams params) throws TException {
+    public ListUserResult getUsers(ListUserParams params) {
         ListUserResult result = new ListUserResult();
         try {
-            String sqlQuery = "SELECT * FROM user";
-            Connection connection = connectionManager.createConnection();
-            List<User> listUsers = new ArrayList<User>();
-            PreparedStatement psm = connection.prepareStatement(sqlQuery);
-            ResultSet rs = psm.executeQuery();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String username = rs.getString("username");
-                String password = rs.getString("password");
-                Gender gender = Gender.findByValue(rs.getInt("gender"));
-
-                long birthday = 0, createTime = 0, updateTime = 0;
-
-                if (rs.getString("birthday") != null) {
-
-                    birthday = DateTimeUtils.formatDateTime(rs.getString("birthday"));
-                }
-                if (rs.getString("createtime") != null) {
-                    createTime = DateTimeUtils.formatDateTime(rs.getString("createtime"));
-                }
-                if (rs.getString("updatetime") != null) {
-                    updateTime = DateTimeUtils.formatDateTime(rs.getString("updatetime"));
-                }
-
-                User user = new User(id, name, username, password, gender, birthday != 0 ? birthday : 0, createTime != 0 ? createTime : 0, updateTime != 0 ? updateTime : 0);
-                listUsers.add(user);
-                //System.out.println(id + " " + name + " " + username + " " + password + " " + gender + " " + birthday + " " + createTime + " " + updateTime);
-            }
-            result.setCode(ZErrorDef.SUCCESS);
-            result.setData(listUsers);
-            connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
+            List<User> users = UserListService.getUsers();
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setData(users);
+        } catch (Exception ex) {
+            _Logger.error(null, ex);
+            result.setCode(ECode.C_FAIL.getValue());
             result.setData(null);
         }
-
         return result;
     }
 
     @Override
-    public DetailUserResult getUser(DetailUserParams params) throws TException {
+    public DetailUserResult getUser(DetailUserParams params) {
         DetailUserResult result = new DetailUserResult();
-        User user = null;
-        try {
-            String sqlQuery = "SELECT * FROM user WHERE id=?";
-            Connection connection = connectionManager.createConnection();
-            PreparedStatement psm = connection.prepareStatement(sqlQuery);
-            psm.setInt(1, params.id);
-            ResultSet rs = psm.executeQuery();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String username = rs.getString("username");
-                String password = rs.getString("password");
-                Gender gender = Gender.findByValue(rs.getInt("gender"));
-
-                long birthday = 0, createTime = 0, updateTime = 0;
-
-                if (rs.getString("birthday") != null) {
-
-                    birthday = DateTimeUtils.formatDateTime(rs.getString("birthday"));
-                }
-                if (rs.getString("createtime") != null) {
-                    createTime = DateTimeUtils.formatDateTime(rs.getString("createtime"));
-                }
-                if (rs.getString("updatetime") != null) {
-                    updateTime = DateTimeUtils.formatDateTime(rs.getString("updatetime"));
-                }
-
-                user = new User(id, name, username, password, gender, birthday, createTime, updateTime);
-            }
-            int code = user != null ? ZErrorDef.SUCCESS : ZErrorDef.BAD_REQUEST;
-            result.setCode(code);
-            result.setData(user);
-            connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
+        if (params.id == 0) {
+            result.setCode(ECode.C_FAIL.getValue());
             result.setData(null);
-        }
+        } else {
 
+            try {
+                User user = UserServices.getUser(params.id);
+                result.setCode(ECode.C_SUCCESS.getValue());
+                result.setData(user);
+            } catch (Exception ex) {
+                _Logger.error(null, ex);
+                result.setCode(ECode.C_FAIL.getValue());
+                result.setData(null);
+            }
+
+        }
         return result;
     }
 
     @Override
     public CreateUserResult createUser(CreateUserParams params) throws TException {
         CreateUserResult result = new CreateUserResult();
-        try {
-            String sqlQuery = "INSERT INTO user (name,username,gender,birthday,password) VALUES (?,?,?,?,?)";
-            Connection connection = connectionManager.createConnection();
-            PreparedStatement psm = connection.prepareStatement(sqlQuery);
-            psm.setString(1, params.user.name);
-            psm.setString(2, params.user.username);
-            psm.setInt(3, params.user.gender.getValue());
-            psm.setDate(4, DateTimeUtils.convertUtilToSql(params.user.birthday));
-            psm.setString(5, HashPassword.toHexString(HashPassword.getSHA(params.user.password)));
-
-            int effectedRow = psm.executeUpdate();
-            int code = effectedRow == 1 ? ZErrorDef.SUCCESS : ZErrorDef.FAIL;
-            String message = effectedRow == 1 ? "Create user successfully" : "Fail to create user";
-            result.setCode(code);
-            result.setMessage(message);
-            connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
-            result.setMessage("Error occur");
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
-            result.setMessage("Error occur");
+        if (params.user.password == null || params.user.name == null || params.user.username == null || params.user.gender == null || params.user.birthday == 0) {
+            result.setCode(ECode.C_FAIL.getValue());
+            result.setMessage("Missing update infomation");
+        } else {
+            try {
+                int effectedRow = UserServices.createUser(params);
+                if (effectedRow == 1) {
+                    result.setCode(ECode.C_SUCCESS.getValue());
+                    result.setMessage("Create user successfully");
+                } else {
+                    result.setCode(ECode.C_FAIL.getValue());
+                    result.setMessage("Fail to create user");
+                }
+            } catch (Exception ex) {
+                _Logger.error(null, ex);
+                result.setCode(ECode.C_FAIL.getValue());
+                result.setMessage("Error occur");
+            }
         }
         return result;
     }
@@ -177,26 +122,24 @@ public class UserHandler implements UserService.Iface {
     @Override
     public UpdateUserResult updateUser(UpdateUserParams params) throws TException {
         UpdateUserResult result = new UpdateUserResult();
-        try {
-            String sqlQuery = "UPDATE user SET name=?,username=?,gender=?,birthday=? where id=?";
-            Connection connection = connectionManager.createConnection();
-            PreparedStatement psm = connection.prepareStatement(sqlQuery);
-            psm.setString(1, params.user.name);
-            psm.setString(2, params.user.username);
-            psm.setInt(3, params.user.gender.getValue());
-            psm.setDate(4, DateTimeUtils.convertUtilToSql(params.user.birthday));
-            psm.setInt(5, params.user.id);
-
-            int effectedRow = psm.executeUpdate();
-            int code = effectedRow == 1 ? ZErrorDef.SUCCESS : ZErrorDef.FAIL;
-            String message = effectedRow == 1 ? "Update user successfully" : "Fail to update user";
-            result.setCode(code);
-            result.setMessage(message);
-            connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
-            result.setMessage("Error occur");
+        if (params.user.name == null || params.user.username == null || params.user.gender == null || params.user.birthday == 0 || params.user.id == 0) {
+            result.setCode(ECode.C_FAIL.getValue());
+            result.setMessage("Missing update infomation");
+        } else {
+            try {
+                int effectedRow = UserServices.updateUser(params);
+                if (effectedRow == 1) {
+                    result.setCode(ECode.C_SUCCESS.getValue());
+                    result.setMessage("Update user successfully");
+                } else {
+                    result.setCode(ECode.C_FAIL.getValue());
+                    result.setMessage("Fail to update user");
+                }
+            } catch (Exception ex) {
+                _Logger.error(null, ex);
+                result.setCode(ECode.C_FAIL.getValue());
+                result.setMessage("Error occur");
+            }
         }
         return result;
     }
@@ -204,21 +147,24 @@ public class UserHandler implements UserService.Iface {
     @Override
     public DeleteUserResult deleteUser(DeleteUserParams params) throws TException {
         DeleteUserResult result = new DeleteUserResult();
-        try {
-            String sqlQuery = "DELETE FROM user WHERE id=?";
-            Connection connection = connectionManager.createConnection();
-            PreparedStatement psm = connection.prepareStatement(sqlQuery);
-            psm.setInt(1, params.id);
-            int effectedRow = psm.executeUpdate();
-            int code = effectedRow == 1 ? ZErrorDef.SUCCESS : ZErrorDef.FAIL;
-            String message = effectedRow == 1 ? "Delete user successfully" : "Fail to delete user";
-            result.setCode(code);
-            result.setMessage(message);
-            connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(UserHandler.class.getName()).log(Level.SEVERE, null, ex);
-            result.setCode(ZErrorDef.FAIL);
-            result.setMessage("Error occur");
+        if (params.id == 0) {
+            result.setCode(ECode.C_FAIL.getValue());
+            result.setMessage("Missing user ID");
+        } else {
+            try {
+                int effectedRow = UserServices.deleteUser(params);
+                if (effectedRow == 1) {
+                    result.setCode(ECode.C_SUCCESS.getValue());
+                    result.setMessage("Delete user successfully");
+                } else {
+                    result.setCode(ECode.C_FAIL.getValue());
+                    result.setMessage("Fail to delete user");
+                }
+            } catch (Exception ex) {
+                _Logger.error(null, ex);
+                result.setCode(ECode.C_FAIL.getValue());
+                result.setMessage("Error occur");
+            }
         }
         return result;
     }

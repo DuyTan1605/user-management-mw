@@ -2,7 +2,7 @@
  * Copyright (c) 2012-2016 by Zalo Group.
  * All Rights Reserved.
  */
-package com.vng.zing.managementuser.servers;
+package com.vng.zing.managementuser;
 
 import com.vng.zing.thriftserver.ThriftServers;
 import com.vng.zing.managementuser.handlers.UserHandler;
