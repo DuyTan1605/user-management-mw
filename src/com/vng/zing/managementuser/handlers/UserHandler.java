@@ -97,9 +97,10 @@ public class UserHandler implements UserService.Iface {
     @Override
     public CreateUserResult createUser(CreateUserParams params) throws TException {
         CreateUserResult result = new CreateUserResult();
-        if (params.user.password == null || params.user.name == null || params.user.username == null || params.user.gender == null || params.user.birthday == 0) {
+        System.out.println(params.user);
+        if (params.user.password == null || params.user.name == null || params.user.username == null || params.user.getFieldValue(User._Fields.GENDER) == null || params.user.getFieldValue(User._Fields.BIRTHDAY) == null) {
             result.setCode(ECode.C_FAIL.getValue());
-            result.setMessage("Missing update infomation");
+            result.setMessage("Missing new user infomation");
         } else {
             try {
                 int effectedRow = UserServices.createUser(params);
@@ -122,7 +123,7 @@ public class UserHandler implements UserService.Iface {
     @Override
     public UpdateUserResult updateUser(UpdateUserParams params) throws TException {
         UpdateUserResult result = new UpdateUserResult();
-        if (params.user.name == null || params.user.username == null || params.user.gender == null || params.user.birthday == 0 || params.user.id == 0) {
+        if (params.user.name == null || params.user.username == null || params.user.gender == null || params.user.getFieldValue(User._Fields.BIRTHDAY) == null || params.user.getFieldValue(User._Fields.ID) == null) {
             result.setCode(ECode.C_FAIL.getValue());
             result.setMessage("Missing update infomation");
         } else {
