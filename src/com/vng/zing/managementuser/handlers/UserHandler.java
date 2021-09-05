@@ -43,8 +43,13 @@ public class UserHandler implements UserService.Iface {
         ListUserResult result = new ListUserResult();
         try {
             List<User> users = userListService.getUsers();
-            result.setCode(ECode.C_SUCCESS.getValue());
-            result.setData(users);
+            if (users != null) {
+                result.setCode(ECode.C_SUCCESS.getValue());
+                result.setData(users);
+            } else {
+                result.setCode(-ECode.NOT_FOUND.getValue());
+                result.setData(null);
+            }
         } catch (Exception ex) {
             _Logger.error(null, ex);
             result.setCode(-ECode.C_FAIL.getValue());
@@ -59,8 +64,13 @@ public class UserHandler implements UserService.Iface {
         try {
             int id = params.id;
             User user = UserServices.getUser(id);
-            result.setCode(ECode.C_SUCCESS.getValue());
-            result.setData(user);
+            if (user != null) {
+                result.setCode(ECode.C_SUCCESS.getValue());
+                result.setData(user);
+            } else {
+                result.setCode(-ECode.NOT_FOUND.getValue());
+                result.setData(null);
+            }
         } catch (ZInvalidParamException ex) {
             _Logger.error(null, ex);
             result.setCode(-ECode.INVALID_PARAM.getValue());
