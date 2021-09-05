@@ -4,9 +4,6 @@
  */
 package com.vng.zing.managementuser;
 
-import com.vng.zing.managementuser.dao.ConnectionManager;
-import java.time.Instant;
-
 /**
  *
  * @author namnq

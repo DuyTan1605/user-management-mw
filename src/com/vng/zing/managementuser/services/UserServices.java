@@ -5,17 +5,17 @@
  */
 package com.vng.zing.managementuser.services;
 
+import com.vng.zing.dmp.common.exception.ZInvalidParamException;
+import com.vng.zing.exception.NotExistException;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.dao.UserDAO;
-import com.vng.zing.managementuser.utils.DateTimeUtils;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
-import com.vng.zing.userservice.thrift.Gender;
 import com.vng.zing.userservice.thrift.UpdateUserParams;
 import com.vng.zing.userservice.thrift.User;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -24,24 +24,35 @@ import org.apache.log4j.Logger;
 public class UserServices {
 
     private static final Logger _Logger = ZLogger.getLogger(UserListService.class);
+    public static final ValidateService validateService = new ValidateService();
 
     public static User getUser(int id) {
-        User user = UserDAO.getUser(id);
-        return user;
+        if (!validateService.validateId(id)) {
+            throw new ZInvalidParamException("User ID is not valid");
+        } else {
+            User user = UserDAO.getUser(id);
+            return user;
+        }
     }
 
-    public static int createUser(CreateUserParams params) {
+    public static int createUser(CreateUserParams params) throws ParseException, JSONException, NotExistException {
+        validateService.validateCreateUserParams(params.user);
         int effectedRow = UserDAO.createUser(params);
         return effectedRow;
     }
 
-    public static int updateUser(UpdateUserParams params) {
+    public static int updateUser(UpdateUserParams params) throws ParseException, JSONException, NotExistException {
+        validateService.validateUpdateUserParams(params.user);
         int effectedRow = UserDAO.updateUser(params);
         return effectedRow;
     }
 
-    public static int deleteUser(DeleteUserParams params) {
-        int effectedRow = UserDAO.deleteUser(params);
-        return effectedRow;
+    public static int deleteUser(DeleteUserParams params) throws NotExistException {
+        if (!validateService.validateId(params.id)) {
+            throw new ZInvalidParamException("User ID is not valid");
+        } else {
+            int effectedRow = UserDAO.deleteUser(params);
+            return effectedRow;
+        }
     }
 }

@@ -7,12 +7,7 @@ package com.vng.zing.managementuser.services;
 
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.dao.UserDAO;
-import com.vng.zing.managementuser.utils.DateTimeUtils;
-import com.vng.zing.userservice.thrift.Gender;
 import com.vng.zing.userservice.thrift.User;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
 
@@ -23,9 +18,10 @@ import org.apache.log4j.Logger;
 public class UserListService {
 
     private static final Logger _Logger = ZLogger.getLogger(UserListService.class);
+    private final UserDAO userDAO = new UserDAO();
 
-    public static List<User> getUsers() {
-        List<User> listUser = UserDAO.getUsers();
+    public List<User> getUsers() {
+        List<User> listUser = userDAO.getUsers();
         return listUser;
     }
 }
