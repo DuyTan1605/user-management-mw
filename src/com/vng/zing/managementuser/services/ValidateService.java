@@ -6,7 +6,6 @@
 package com.vng.zing.managementuser.services;
 
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
-import com.vng.zing.userservice.thrift.Gender;
 import com.vng.zing.userservice.thrift.User;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,52 +54,16 @@ public class ValidateService {
         }
     }
 
-    public boolean validateBirthday(long birthday) {
-        if (birthday == 0) {
-            return false;
-        }
-        return true;
-    }
-
-    public boolean validateGender(Gender gender) {
-        if (gender.getValue() == 1 || gender.getValue() == 0) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean validateId(int id) {
-        if (id == (int) id && id > 0) {
-            return true;
-        }
-        return false;
-    }
-
     public void validateCreateUserParams(User user) throws ParseException, JSONException {
-        String name = user.name;
-        String userName = user.username;
-        String password = user.password;
-        long birthday = user.birthday;
-        Gender gender = user.gender;
-        if (!validateName(name)) {
-            throw new ZInvalidParamException("Name is not valid");
-        } else if (!validateName(userName)) {
-            throw new ZInvalidParamException("User name is not valid");
-        } else if (!validatePassword(password)) {
-            throw new ZInvalidParamException("Password is not valid");
-        } else if (!validateBirthday(birthday)) {
-            throw new ZInvalidParamException("Birthday is not valid");
-        } else if (!validateGender(gender)) {
-            throw new ZInvalidParamException("Gender is not valid");
+        if (user.birthday <= 0 || (user.gender.getValue() != 1 && user.gender.getValue() != 0) || !validateName(user.name) || !validateUserName(user.username) || !validatePassword(user.password)) {
+            throw new ZInvalidParamException("User data " + user + " not valid");
         }
     }
 
     public void validateUpdateUserParams(User user) throws ParseException, JSONException {
         validateCreateUserParams(user);
-        int id = user.id;
-
-        if (!validateId(id)) {
-            throw new ZInvalidParamException("ID is not valid");
+        if (user.id <= 0) {
+            throw new ZInvalidParamException("User data " + user + " not valid");
         }
     }
 }

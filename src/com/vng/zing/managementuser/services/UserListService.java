@@ -5,11 +5,9 @@
  */
 package com.vng.zing.managementuser.services;
 
-import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.dao.UserDAO;
 import com.vng.zing.userservice.thrift.User;
 import java.util.List;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -17,11 +15,9 @@ import org.apache.log4j.Logger;
  */
 public class UserListService {
 
-    private static final Logger _Logger = ZLogger.getLogger(UserListService.class);
-    private final UserDAO userDAO = new UserDAO();
+    private UserDAO userDAO = new UserDAO();
 
     public List<User> getUsers() {
-        List<User> listUser = userDAO.getUsers();
-        return listUser;
+        return userDAO.getUsers();
     }
 }

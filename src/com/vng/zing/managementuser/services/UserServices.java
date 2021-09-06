@@ -7,13 +7,13 @@ package com.vng.zing.managementuser.services;
 
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.exception.NotExistException;
-import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.dao.UserDAO;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
 import com.vng.zing.userservice.thrift.UpdateUserParams;
 import com.vng.zing.userservice.thrift.User;
-import org.apache.log4j.Logger;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 
@@ -23,36 +23,31 @@ import org.json.simple.parser.ParseException;
  */
 public class UserServices {
 
-    private static final Logger _Logger = ZLogger.getLogger(UserListService.class);
-    public static final ValidateService validateService = new ValidateService();
+    private ValidateService validateService = new ValidateService();
+    private UserDAO userDAO = new UserDAO();
 
-    public static User getUser(int id) {
-        if (!validateService.validateId(id)) {
+    public User getUser(int id) {
+        if (id <= 0) {
             throw new ZInvalidParamException("User ID is not valid");
-        } else {
-            User user = UserDAO.getUser(id);
-            return user;
         }
+        User user = userDAO.getUser(id);
+        return user;
     }
 
-    public static int createUser(CreateUserParams params) throws ParseException, JSONException, NotExistException {
+    public void createUser(CreateUserParams params) throws ParseException, JSONException, NotExistException, NoSuchAlgorithmException, SQLException {
         validateService.validateCreateUserParams(params.user);
-        int effectedRow = UserDAO.createUser(params);
-        return effectedRow;
+        userDAO.createUser(params);
     }
 
-    public static int updateUser(UpdateUserParams params) throws ParseException, JSONException, NotExistException {
+    public void updateUser(UpdateUserParams params) throws ParseException, JSONException, NotExistException, SQLException {
         validateService.validateUpdateUserParams(params.user);
-        int effectedRow = UserDAO.updateUser(params);
-        return effectedRow;
+        userDAO.updateUser(params);
     }
 
-    public static int deleteUser(DeleteUserParams params) throws NotExistException {
-        if (!validateService.validateId(params.id)) {
+    public void deleteUser(DeleteUserParams params) throws NotExistException, SQLException {
+        if (params.id <= 0) {
             throw new ZInvalidParamException("User ID is not valid");
-        } else {
-            int effectedRow = UserDAO.deleteUser(params);
-            return effectedRow;
         }
+        userDAO.deleteUser(params);
     }
 }

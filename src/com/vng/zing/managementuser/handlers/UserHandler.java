@@ -6,9 +6,9 @@
 package com.vng.zing.managementuser.handlers;
 
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
-import com.vng.zing.exception.NotExistException;
+import com.vng.zing.dmp.common.exception.ZNotExistException;
+import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
 import com.vng.zing.logger.ZLogger;
-import com.vng.zing.managementuser.dao.ConnectionManager;
 import com.vng.zing.managementuser.services.UserListService;
 import com.vng.zing.managementuser.services.UserServices;
 import com.vng.zing.userservice.thrift.CreateUserParams;
@@ -34,26 +34,35 @@ import org.apache.log4j.Logger;
  */
 public class UserHandler implements UserService.Iface {
 
-    public ConnectionManager connectionManager = new ConnectionManager();
-    private static final Logger _Logger = ZLogger.getLogger(UserHandler.class);
-    private final UserListService userListService = new UserListService();
+    private static final Logger logger = ZLogger.getLogger(UserHandler.class);
+    
+    private UserListService userListService = new UserListService();
+    private UserServices userServices = new UserServices();
+
+    private int handleErrorCode(Exception ex) {
+        int errorCode = -ECode.EXCEPTION.getValue();
+        if (ex instanceof ZInvalidParamException) {
+            errorCode = -ECode.INVALID_PARAM.getValue();
+        }
+        if (ex instanceof ZRemoteFailureException) {
+            errorCode = -ECode.C_FAIL.getValue();
+        }
+        if (ex instanceof ZNotExistException) {
+            errorCode = -ECode.NOT_EXIST.getValue();
+        }
+        return errorCode;
+    }
 
     @Override
     public ListUserResult getUsers(ListUserParams params) {
         ListUserResult result = new ListUserResult();
         try {
             List<User> users = userListService.getUsers();
-            if (users != null) {
-                result.setCode(ECode.C_SUCCESS.getValue());
-                result.setData(users);
-            } else {
-                result.setCode(-ECode.NOT_FOUND.getValue());
-                result.setData(null);
-            }
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setData(users);
         } catch (Exception ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.C_FAIL.getValue());
-            result.setData(null);
+            logger.error(ex);
+            result.setCode(handleErrorCode(ex));
         }
         return result;
     }
@@ -62,23 +71,12 @@ public class UserHandler implements UserService.Iface {
     public DetailUserResult getUser(DetailUserParams params) {
         DetailUserResult result = new DetailUserResult();
         try {
-            int id = params.id;
-            User user = UserServices.getUser(id);
-            if (user != null) {
-                result.setCode(ECode.C_SUCCESS.getValue());
-                result.setData(user);
-            } else {
-                result.setCode(-ECode.NOT_FOUND.getValue());
-                result.setData(null);
-            }
-        } catch (ZInvalidParamException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setData(null);
+            User user = userServices.getUser(params.id);
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setData(user);
         } catch (Exception ex) {
-            _Logger.error(null, ex);
-            result.setCode(ECode.C_FAIL.getValue());
-            result.setData(null);
+            logger.error(ex);
+            result.setCode(handleErrorCode(ex));
         }
         return result;
     }
@@ -87,26 +85,13 @@ public class UserHandler implements UserService.Iface {
     public CreateUserResult createUser(CreateUserParams params) throws TException {
         CreateUserResult result = new CreateUserResult();
         try {
-            int effectedRow = UserServices.createUser(params);
-            if (effectedRow == 1) {
-                result.setCode(ECode.C_SUCCESS.getValue());
-                result.setMessage("Create user successfully");
-            } else {
-                result.setCode(-ECode.C_FAIL.getValue());
-                result.setMessage("Fail to create user");
-            }
-        } catch (NotExistException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage("Missing credentials");
-        } catch (ZInvalidParamException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage(ex.getMessage());
+            userServices.createUser(params);
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setMessage("Create user successfully");
         } catch (Exception ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.C_FAIL.getValue());
-            result.setMessage("Error occur");
+            logger.error(ex);
+            result.setCode(handleErrorCode(ex));
+            result.setMessage(ex.getMessage());
         }
         return result;
     }
@@ -115,26 +100,13 @@ public class UserHandler implements UserService.Iface {
     public UpdateUserResult updateUser(UpdateUserParams params) throws TException {
         UpdateUserResult result = new UpdateUserResult();
         try {
-            int effectedRow = UserServices.updateUser(params);
-            if (effectedRow == 1) {
-                result.setCode(ECode.C_SUCCESS.getValue());
-                result.setMessage("Update user successfully");
-            } else {
-                result.setCode(-ECode.C_FAIL.getValue());
-                result.setMessage("Fail to update user");
-            }
-        } catch (NotExistException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage("Missing credentials");
-        } catch (ZInvalidParamException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage(ex.getMessage());
+            userServices.updateUser(params);
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setMessage("Update user successfully");
         } catch (Exception ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.C_FAIL.getValue());
-            result.setMessage("Error occur");
+            logger.error(ex);
+            result.setCode(handleErrorCode(ex));
+            result.setMessage(ex.getMessage());
         }
         return result;
     }
@@ -143,26 +115,13 @@ public class UserHandler implements UserService.Iface {
     public DeleteUserResult deleteUser(DeleteUserParams params) throws TException {
         DeleteUserResult result = new DeleteUserResult();
         try {
-            int effectedRow = UserServices.deleteUser(params);
-            if (effectedRow == 1) {
-                result.setCode(ECode.C_SUCCESS.getValue());
-                result.setMessage("Delete user successfully");
-            } else {
-                result.setCode(-ECode.C_FAIL.getValue());
-                result.setMessage("Fail to delete user");
-            }
-        } catch (NotExistException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage("Missing credentials");
-        } catch (ZInvalidParamException ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.INVALID_PARAM.getValue());
-            result.setMessage(ex.getMessage());
+            userServices.deleteUser(params);
+            result.setCode(ECode.C_SUCCESS.getValue());
+            result.setMessage("Delete user successfully");
         } catch (Exception ex) {
-            _Logger.error(null, ex);
-            result.setCode(-ECode.C_FAIL.getValue());
-            result.setMessage("Error occur");
+            logger.error(ex);
+            result.setCode(handleErrorCode(ex));
+            result.setMessage(ex.getMessage());
         }
         return result;
     }

@@ -5,6 +5,8 @@
  */
 package com.vng.zing.managementuser.dao;
 
+import com.vng.zing.dmp.common.exception.ZNotExistException;
+import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.utils.DateTimeUtils;
 import com.vng.zing.managementuser.utils.PasswordHasher;
@@ -19,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Logger;
 
@@ -28,18 +31,19 @@ import org.apache.log4j.Logger;
  */
 public class UserDAO {
 
-    public static final ConnectionManager connectionManager = new ConnectionManager();
-    private static final Logger _Logger = ZLogger.getLogger(UserDAO.class);
+    private static final Logger logger = ZLogger.getLogger(UserDAO.class);
 
-    private static final String USER_TABLE = "user";
-    private static final String ID = "id";
-    private static final String NAME = "name";
-    private static final String USER_NAME = "username";
-    private static final String GENDER = "gender";
-    private static final String PASSWORD = "password";
-    private static final String BIRTHDAY = "birthday";
-    private static final String CREATE_TIME = "createtime";
-    private static final String UPDATE_TIME = "updatetime";
+    private final String USER_TABLE = "user";
+    private final String ID = "id";
+    private final String NAME = "name";
+    private final String USER_NAME = "username";
+    private final String GENDER = "gender";
+    private final String PASSWORD = "password";
+    private final String BIRTHDAY = "birthday";
+    private final String CREATE_TIME = "createtime";
+    private final String UPDATE_TIME = "updatetime";
+
+    private ConnectionManager connectionManager = new ConnectionManager();
 
     public List<User> getUsers() {
         Connection connection = connectionManager.createConnection();
@@ -63,18 +67,18 @@ public class UserDAO {
             }
             return listUser;
         } catch (SQLException ex) {
-            _Logger.error(null, ex);
-            return null;
+            logger.error(ex);
+            return Collections.EMPTY_LIST;
         } finally {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                _Logger.error(null, ex);
+                logger.error(ex);
             }
         }
     }
 
-    public static User getUser(int id) {
+    public User getUser(int id) {
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "SELECT * FROM " + USER_TABLE + " WHERE id=?";
@@ -94,20 +98,23 @@ public class UserDAO {
 
                 user = new User(userId, name, username, password, gender, birthday, createTime, updateTime);
             }
+            if (user == null) {
+                throw new ZNotExistException("User with ID=" + id + " not existed");
+            }
             return user;
         } catch (SQLException ex) {
-            _Logger.error(null, ex);
+            logger.error(ex);
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                _Logger.error(null, ex);
+                logger.error(ex);
             }
         }
     }
 
-    public static int createUser(CreateUserParams params) {
+    public void createUser(CreateUserParams params) throws NoSuchAlgorithmException, SQLException {
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "INSERT INTO " + USER_TABLE + "(" + NAME + "," + USER_NAME + "," + GENDER + "," + BIRTHDAY + "," + PASSWORD + ")" + "VALUES (?,?,?,?,?)";
@@ -119,23 +126,19 @@ public class UserDAO {
 
             psm.setString(5, PasswordHasher.hashPassword(params.user.password));
             int effectedRow = psm.executeUpdate();
-            return effectedRow;
-        } catch (SQLException ex) {
-            _Logger.error(null, ex);
-            return 0;
-        } catch (NoSuchAlgorithmException ex) {
-            _Logger.error(null, ex);
-            return 0;
+            if (effectedRow == 0) {
+                throw new ZRemoteFailureException("Can not create new user " + params.user);
+            }
         } finally {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                _Logger.error(null, ex);
+                logger.error(ex);
             }
         }
     }
 
-    public static int updateUser(UpdateUserParams params) {
+    public void updateUser(UpdateUserParams params) throws SQLException {
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "UPDATE " + USER_TABLE + " SET " + NAME + "=?," + USER_NAME + "=?," + GENDER + "=?," + BIRTHDAY + "=? where " + ID + "=?";
@@ -147,20 +150,19 @@ public class UserDAO {
             psm.setInt(5, params.user.id);
 
             int effectedRow = psm.executeUpdate();
-            return effectedRow;
-        } catch (SQLException ex) {
-            _Logger.error(null, ex);
-            return 0;
+            if (effectedRow == 0) {
+                throw new ZRemoteFailureException("Can not update user " + params.user);
+            }
         } finally {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                _Logger.error(null, ex);
+                logger.error(ex);
             }
         }
     }
 
-    public static int deleteUser(DeleteUserParams params) {
+    public void deleteUser(DeleteUserParams params) throws SQLException {
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "DELETE FROM " + USER_TABLE + " WHERE " + ID + "=?";
@@ -168,15 +170,14 @@ public class UserDAO {
             PreparedStatement psm = connection.prepareStatement(sqlQuery);
             psm.setInt(1, params.id);
             int effectedRow = psm.executeUpdate();
-            return effectedRow;
-        } catch (SQLException ex) {
-            _Logger.error(null, ex);
-            return 0;
+            if (effectedRow == 0) {
+                throw new ZRemoteFailureException("Can delete user with ID=" + params.id);
+            }
         } finally {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                _Logger.error(null, ex);
+                logger.error(ex);
             }
         }
     }
