@@ -46,7 +46,7 @@ public class ValidateService {
         } else {
             String regex = "^(?=.*[0-9])"
                     + "(?=.*[a-z])(?=.*[A-Z])"
-                    + "(?=.*[@#$%^&+=])"
+                    + "(?=.*[@#$%^&+=!])"
                     + "(?=\\S+$).{8,20}$";
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(password);
@@ -61,8 +61,8 @@ public class ValidateService {
     }
 
     public void validateUpdateUserParams(User user) throws ParseException, JSONException {
-        validateCreateUserParams(user);
-        if (user.id <= 0) {
+       // validateCreateUserParams(user);
+        if (user.id <= 0 || user.birthday <= 0 || (user.gender.getValue() != 1 && user.gender.getValue() != 0) || !validateName(user.name) || !validateUserName(user.username)) {
             throw new ZInvalidParamException("User data " + user + " not valid");
         }
     }
