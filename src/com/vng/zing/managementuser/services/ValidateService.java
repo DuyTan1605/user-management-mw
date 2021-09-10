@@ -22,7 +22,7 @@ public class ValidateService {
         if (name == null || name.trim().isEmpty()) {
             return false;
         } else {
-            String regex = "^[A-Za-z]\\w{5,29}$";
+            String regex = "^[A-Za-z]{5,29}$";
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(name);
             return m.matches();
@@ -33,7 +33,7 @@ public class ValidateService {
         if (userName == null || userName.trim().isEmpty()) {
             return false;
         } else {
-            String regex = "^[A-Za-z0-9]\\w{5,29}$";
+            String regex = "^[A-Za-z0-9]{5,29}$";
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(userName);
             return m.matches();

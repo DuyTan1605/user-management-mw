@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 public class UserHandler implements UserService.Iface {
 
     private static final Logger logger = ZLogger.getLogger(UserHandler.class);
-    
+
     private UserListService userListService = new UserListService();
     private UserServices userServices = new UserServices();
 
