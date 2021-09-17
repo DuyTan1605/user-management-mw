@@ -8,6 +8,7 @@ package com.vng.zing.managementuser.services;
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.exception.NotExistException;
 import com.vng.zing.managementuser.dao.UserDAO;
+import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
 import com.vng.zing.userservice.thrift.UpdateUserParams;
@@ -27,27 +28,48 @@ public class UserServices {
     private UserDAO userDAO = new UserDAO();
 
     public User getUser(int id) {
-        if (id <= 0) {
-            throw new ZInvalidParamException("User ID is not valid");
+        Profiler.getThreadProfiler().push(this.getClass(), "getUser");
+        User user = new User();
+        try {
+            if (id <= 0) {
+                throw new ZInvalidParamException("User ID is not valid");
+            }
+            user = userDAO.getUser(id);
+        } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "getUser");
         }
-        User user = userDAO.getUser(id);
         return user;
     }
 
     public void createUser(CreateUserParams params) throws ParseException, JSONException, NotExistException, NoSuchAlgorithmException, SQLException {
-        validateService.validateCreateUserParams(params.user);
-        userDAO.createUser(params);
+        Profiler.getThreadProfiler().push(this.getClass(), "createUser");
+        try {
+            validateService.validateCreateUserParams(params.user);
+            userDAO.createUser(params);
+        } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "createUser");
+        }
     }
 
     public void updateUser(UpdateUserParams params) throws ParseException, JSONException, NotExistException, SQLException {
-        validateService.validateUpdateUserParams(params.user);
-        userDAO.updateUser(params);
+        Profiler.getThreadProfiler().push(this.getClass(), "updateUser");
+        try {
+            validateService.validateUpdateUserParams(params.user);
+            userDAO.updateUser(params);
+        } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "updateUser");
+        }
     }
 
     public void deleteUser(DeleteUserParams params) throws NotExistException, SQLException {
-        if (params.id <= 0) {
-            throw new ZInvalidParamException("User ID is not valid");
+        Profiler.getThreadProfiler().push(this.getClass(), "deleteUser");
+        try {
+            if (params.id <= 0) {
+                throw new ZInvalidParamException("User ID is not valid");
+            }
+            userDAO.deleteUser(params);
+        } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "deleteUser");
         }
-        userDAO.deleteUser(params);
     }
 }

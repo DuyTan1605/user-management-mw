@@ -10,6 +10,7 @@ import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.utils.DateTimeUtils;
 import com.vng.zing.managementuser.utils.PasswordHasher;
+import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
 import com.vng.zing.userservice.thrift.Gender;
@@ -46,6 +47,7 @@ public class UserDAO {
     private ConnectionManager connectionManager = new ConnectionManager();
 
     public List<User> getUsers() {
+        Profiler.getThreadProfiler().push(this.getClass(), "getUsers");
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "SELECT * FROM " + USER_TABLE;
@@ -70,6 +72,7 @@ public class UserDAO {
             logger.error(ex);
             return Collections.EMPTY_LIST;
         } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "getUsers");
             try {
                 connection.close();
             } catch (SQLException ex) {
@@ -79,6 +82,7 @@ public class UserDAO {
     }
 
     public User getUser(int id) {
+        Profiler.getThreadProfiler().push(this.getClass(), "getUser");
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "SELECT * FROM " + USER_TABLE + " WHERE id=?";
@@ -106,6 +110,7 @@ public class UserDAO {
             logger.error(ex);
             return null;
         } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "getUser");
             try {
                 connection.close();
             } catch (SQLException ex) {
@@ -115,6 +120,7 @@ public class UserDAO {
     }
 
     public void createUser(CreateUserParams params) throws NoSuchAlgorithmException, SQLException {
+        Profiler.getThreadProfiler().push(this.getClass(), "createUser");
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "INSERT INTO " + USER_TABLE + "(" + NAME + "," + USER_NAME + "," + GENDER + "," + BIRTHDAY + "," + PASSWORD + ")" + "VALUES (?,?,?,?,?)";
@@ -130,6 +136,7 @@ public class UserDAO {
                 throw new ZRemoteFailureException("Can not create new user " + params.user);
             }
         } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "createUser");
             try {
                 connection.close();
             } catch (SQLException ex) {
@@ -139,6 +146,7 @@ public class UserDAO {
     }
 
     public void updateUser(UpdateUserParams params) throws SQLException {
+        Profiler.getThreadProfiler().push(this.getClass(), "updateUser");
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "UPDATE " + USER_TABLE + " SET " + NAME + "=?," + USER_NAME + "=?," + GENDER + "=?," + BIRTHDAY + "=? where " + ID + "=?";
@@ -154,6 +162,7 @@ public class UserDAO {
                 throw new ZRemoteFailureException("Can not update user " + params.user);
             }
         } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "updateUser");
             try {
                 connection.close();
             } catch (SQLException ex) {
@@ -163,6 +172,7 @@ public class UserDAO {
     }
 
     public void deleteUser(DeleteUserParams params) throws SQLException {
+        Profiler.getThreadProfiler().push(this.getClass(), "deleteUser");
         Connection connection = connectionManager.createConnection();
         try {
             String sqlQuery = "DELETE FROM " + USER_TABLE + " WHERE " + ID + "=?";
@@ -174,6 +184,7 @@ public class UserDAO {
                 throw new ZRemoteFailureException("Can delete user with ID=" + params.id);
             }
         } finally {
+            Profiler.getThreadProfiler().pop(this.getClass(), "deleteUser");
             try {
                 connection.close();
             } catch (SQLException ex) {

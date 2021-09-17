@@ -11,6 +11,7 @@ import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.services.UserListService;
 import com.vng.zing.managementuser.services.UserServices;
+import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.CreateUserResult;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
@@ -55,6 +56,7 @@ public class UserHandler implements UserService.Iface {
 
     @Override
     public ListUserResult getUsers(ListUserParams params) {
+        Profiler.createThreadProfiler("UserHandler.getUsers", false);
         ListUserResult result = new ListUserResult();
         try {
             List<User> users = userListService.getUsers();
@@ -63,12 +65,15 @@ public class UserHandler implements UserService.Iface {
         } catch (Exception ex) {
             logger.error(ex);
             result.setCode(handleErrorCode(ex));
+        } finally {
+            Profiler.closeThreadProfiler();
         }
         return result;
     }
 
     @Override
     public DetailUserResult getUser(DetailUserParams params) {
+        Profiler.createThreadProfiler("UserHandler.getUser", false);
         DetailUserResult result = new DetailUserResult();
         try {
             User user = userServices.getUser(params.id);
@@ -77,12 +82,15 @@ public class UserHandler implements UserService.Iface {
         } catch (Exception ex) {
             logger.error(ex);
             result.setCode(handleErrorCode(ex));
+        } finally {
+            Profiler.closeThreadProfiler();
         }
         return result;
     }
 
     @Override
     public CreateUserResult createUser(CreateUserParams params) throws TException {
+        Profiler.createThreadProfiler("UserHandler.createUser", false);
         CreateUserResult result = new CreateUserResult();
         try {
             userServices.createUser(params);
@@ -92,12 +100,15 @@ public class UserHandler implements UserService.Iface {
             logger.error(ex);
             result.setCode(handleErrorCode(ex));
             result.setMessage(ex.getMessage());
+        } finally {
+            Profiler.closeThreadProfiler();
         }
         return result;
     }
 
     @Override
     public UpdateUserResult updateUser(UpdateUserParams params) throws TException {
+        Profiler.createThreadProfiler("UserHandler.updateUser", false);
         UpdateUserResult result = new UpdateUserResult();
         try {
             userServices.updateUser(params);
@@ -107,12 +118,15 @@ public class UserHandler implements UserService.Iface {
             logger.error(ex);
             result.setCode(handleErrorCode(ex));
             result.setMessage(ex.getMessage());
+        } finally {
+            Profiler.closeThreadProfiler();
         }
         return result;
     }
 
     @Override
     public DeleteUserResult deleteUser(DeleteUserParams params) throws TException {
+        Profiler.createThreadProfiler("UserHandler.deleteUser", false);
         DeleteUserResult result = new DeleteUserResult();
         try {
             userServices.deleteUser(params);
@@ -122,6 +136,8 @@ public class UserHandler implements UserService.Iface {
             logger.error(ex);
             result.setCode(handleErrorCode(ex));
             result.setMessage(ex.getMessage());
+        } finally {
+            Profiler.closeThreadProfiler();
         }
         return result;
     }
