@@ -4,12 +4,18 @@
  */
 package com.vng.zing.managementuser;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+
 /**
  *
  * @author namnq
  */
 public class MainApp {
-
+    
     /**
      * @param args the command line arguments
      */
@@ -19,6 +25,5 @@ public class MainApp {
             System.err.println("Could not start thrift servers! Exit now.");
             System.exit(1);
         }
-
     }
 }

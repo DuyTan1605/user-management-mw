@@ -5,6 +5,7 @@
  */
 package com.vng.zing.managementuser.services;
 
+import com.google.inject.Inject;
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.exception.NotExistException;
 import com.vng.zing.managementuser.dao.UserDAO;
@@ -24,8 +25,14 @@ import org.json.simple.parser.ParseException;
  */
 public class UserServices {
 
-    private ValidateService validateService = new ValidateService();
-    private UserDAO userDAO = new UserDAO();
+    private ValidateService validateService;
+    private UserDAO userDAO;
+
+    @Inject
+    public UserServices(UserDAO userDAO, ValidateService validateService) {
+        this.userDAO = userDAO;
+        this.validateService = validateService;
+    }
 
     public User getUser(int id) {
         Profiler.getThreadProfiler().push(this.getClass(), "getUser");

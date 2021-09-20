@@ -5,6 +5,9 @@
  */
 package com.vng.zing.managementuser.handlers;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.dmp.common.exception.ZNotExistException;
 import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
@@ -37,8 +40,14 @@ public class UserHandler implements UserService.Iface {
 
     private static final Logger logger = ZLogger.getLogger(UserHandler.class);
 
-    private UserListService userListService = new UserListService();
-    private UserServices userServices = new UserServices();
+    private UserListService userListService;
+    private UserServices userServices;
+
+    @Inject
+    public UserHandler(UserListService userListService, UserServices userServices) {
+        this.userListService = userListService;
+        this.userServices = userServices;
+    }
 
     private int handleErrorCode(Exception ex) {
         int errorCode = -ECode.EXCEPTION.getValue();
