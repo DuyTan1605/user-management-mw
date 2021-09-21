@@ -4,14 +4,9 @@
  */
 package com.vng.zing.managementuser;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.Inject;
 import com.vng.zing.thriftserver.ThriftServers;
 import com.vng.zing.managementuser.handlers.UserHandler;
-import com.vng.zing.managementuser.modules.UserListModule;
-import com.vng.zing.managementuser.modules.UserModule;
-import com.vng.zing.managementuser.services.UserListService;
-import com.vng.zing.managementuser.services.UserServices;
 import com.vng.zing.userservice.thrift.UserService;
 
 /**
@@ -20,15 +15,16 @@ import com.vng.zing.userservice.thrift.UserService;
  */
 public class TServers {
 
+    private UserHandler userHanler;
+
+    @Inject
+    public TServers(UserHandler userHanler) {
+        this.userHanler = userHanler;
+    }
+
     public boolean setupAndStart() {
         ThriftServers servers = new ThriftServers("Main");
-        Injector injector = Guice.createInjector(new UserListModule(), new UserModule());
-        
-        UserListService userListService = injector.getInstance(UserListService.class);
-        UserServices userServices = injector.getInstance(UserServices.class);
-        
-        UserService.Processor processor = new UserService.Processor(new UserHandler(userListService, userServices));
-        
+        UserService.Processor processor = new UserService.Processor(userHanler);
         servers.setup(processor);
         return servers.start();
     }

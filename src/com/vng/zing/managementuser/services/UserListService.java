@@ -7,6 +7,8 @@ package com.vng.zing.managementuser.services;
 
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
+import com.vng.zing.dmp.common.interceptor.ApiProfiler;
+import com.vng.zing.dmp.common.interceptor.ThreadProfiler;
 import com.vng.zing.managementuser.dao.UserDAO;
 import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.User;
@@ -26,14 +28,10 @@ public class UserListService {
         this.userDAO = userDAO;
     }
 
+    @ApiProfiler
     public List<User> getUsers() {
-        Profiler.getThreadProfiler().push(this.getClass(), "getUsers");
         List<User> users = new ArrayList<User>();
-        try {
-            users = this.userDAO.getUsers();
-        } finally {
-            Profiler.getThreadProfiler().pop(this.getClass(), "getUsers");
-        }
+        users = this.userDAO.getUsers();
         return users;
     }
 }
