@@ -5,9 +5,7 @@
  */
 package com.vng.zing.managementuser.handlers;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.dmp.common.exception.ZNotExistException;
 import com.vng.zing.dmp.common.exception.ZRemoteFailureException;
@@ -15,7 +13,6 @@ import com.vng.zing.dmp.common.interceptor.ThreadProfiler;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.services.UserListService;
 import com.vng.zing.managementuser.services.UserServices;
-import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.CreateUserResult;
 import com.vng.zing.userservice.thrift.DeleteUserParams;

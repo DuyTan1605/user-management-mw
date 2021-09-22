@@ -5,12 +5,9 @@
  */
 package com.vng.zing.managementuser.services;
 
-import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.vng.zing.dmp.common.interceptor.ApiProfiler;
-import com.vng.zing.dmp.common.interceptor.ThreadProfiler;
 import com.vng.zing.managementuser.dao.UserDAO;
-import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.User;
 import java.util.ArrayList;
 import java.util.List;

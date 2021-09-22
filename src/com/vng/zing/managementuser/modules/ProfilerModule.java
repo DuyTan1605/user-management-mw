@@ -11,7 +11,6 @@ import com.vng.zing.dmp.common.interceptor.ApiProfiler;
 import com.vng.zing.dmp.common.interceptor.ApiProfilerInterceptor;
 import com.vng.zing.dmp.common.interceptor.ThreadProfiler;
 import com.vng.zing.dmp.common.interceptor.ThreadProfilerInterceptor;
-import com.vng.zing.managementuser.handlers.UserHandler;
 
 /**
  *

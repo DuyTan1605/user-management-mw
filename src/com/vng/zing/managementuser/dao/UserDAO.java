@@ -12,7 +12,6 @@ import com.vng.zing.dmp.common.interceptor.ApiProfiler;
 import com.vng.zing.logger.ZLogger;
 import com.vng.zing.managementuser.utils.DateTimeUtils;
 import com.vng.zing.managementuser.utils.PasswordHasher;
-import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
 import com.vng.zing.userservice.thrift.Gender;

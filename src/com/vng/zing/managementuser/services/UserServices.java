@@ -10,7 +10,6 @@ import com.vng.zing.dmp.common.exception.ZInvalidParamException;
 import com.vng.zing.dmp.common.interceptor.ApiProfiler;
 import com.vng.zing.exception.NotExistException;
 import com.vng.zing.managementuser.dao.UserDAO;
-import com.vng.zing.stats.Profiler;
 import com.vng.zing.userservice.thrift.CreateUserParams;
 import com.vng.zing.userservice.thrift.DeleteUserParams;
 import com.vng.zing.userservice.thrift.UpdateUserParams;
